@@ -66,7 +66,7 @@ defmodule VExchange.MixProject do
       {:oban, "~> 2.14"},
       {:timex, "~> 3.7"},
       {:inet_cidr, "~> 1.0.0"},
-      {:paraxial, "~> 2.5.0"},
+      {:paraxial, "~> 2.6.0"},
       {:remote_ip, "~> 1.1"},
       {:tesla_curl, "~> 1.2.1", only: :dev},
       {:sentry, "~> 8.0"},
