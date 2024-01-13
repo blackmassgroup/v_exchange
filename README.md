@@ -12,7 +12,7 @@
 - Checks for VT Report on load of the `Sample` show page.
 - Uses [`libcluster`](https://fly.io/docs/elixir/the-basics/clustering/#adding-libcluster) and [`fly_postgres`](https://hexdocs.pm/fly_postgres/readme.html) for scalability
 - Has [CI/CD](https://fly.io/docs/elixir/advanced-guides/github-actions-elixir-ci-cd/) setup and is deployed on Fly.io.
-- Custom Discord Logger backend
+- ~~Custom Discord Logger backend~~
 - Upload, login and get sample API routes
 
 ### Built With
@@ -136,7 +136,6 @@ classDiagram
     class Users {
      +String email
      +String username
-     +String tier
      +String password
      +Integer role_id
      +String hashed_password
