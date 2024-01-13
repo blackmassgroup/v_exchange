@@ -18,7 +18,7 @@ config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: VExchange.Finch,
 # Do not print debug messages in production
 config :logger, level: :info
 
-config :logger, backends: [:console, {VExchange.DiscordLogger, :discord}]
+config :logger, backends: [:console]
 
 if System.get_env("PARAXIAL_EXCEPTION") != nil do
   config :paraxial,
