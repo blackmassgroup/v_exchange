@@ -41,3 +41,9 @@ npm-debug.log
 fly.toml
 
 priv/repo/structure.sql
+
+/*/.DS_STORE
+
+file_list.txt
+
+scripts/*
