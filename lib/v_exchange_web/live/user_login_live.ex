@@ -48,7 +48,8 @@ defmodule VExchangeWeb.UserLoginLive do
   end
 
   def mount(_params, _session, socket) do
-    email = live_flash(socket.assigns.flash, :email)
-    {:ok, assign(socket, email: email), temporary_assigns: [email: nil]}
+    email = Phoenix.Flash.get(socket.assigns.flash, :email)
+
+    {:ok, socket, temporary_assigns: [email: email]}
   end
 end
