@@ -82,8 +82,9 @@ defmodule VExchange.Accounts do
       {:ok, user} ->
         with {:ok, user} <- add_role_to_user(user, "User"),
              attrs <- %{api_key: generate_api_key()},
-             user = %{} <- User.api_key_changeset(user, attrs) |> Repo.update!(),
-             {:ok, _user} <- VExchange.Services.Malcore.register(user.email) do
+             user = %{} <- User.api_key_changeset(user, attrs) |> Repo.update!() do
+          #  {:ok, _user} <- VExchange.Services.Malcore.register(user.email)
+
           {:ok, user}
         end
 
