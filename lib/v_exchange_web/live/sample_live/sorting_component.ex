@@ -16,7 +16,7 @@ defmodule VExchangeWeb.SampleLive.SortingComponent do
       phx-target={@myself}
       class="sorting-header flex justify-items-center items-center"
     >
-      <%= @key %> <%= chevron(@sorting, String.to_exisiting_atom(@key)) %>
+      <%= @key %> <%= chevron(@sorting, String.to_existing_atom(@key)) %>
     </div>
     """
   end
@@ -25,11 +25,11 @@ defmodule VExchangeWeb.SampleLive.SortingComponent do
     %{sorting: %{sort_dir: sort_dir}, key: key} = socket.assigns
 
     sort_dir = if sort_dir == :asc, do: :desc, else: :asc
-    opts = %{sort_by: String.to_exisiting_atom(key), sort_dir: sort_dir}
+    opts = %{sort_by: String.to_existing_atom(key), sort_dir: sort_dir}
 
     send(self(), {:update, opts})
 
-    socket = assign(socket, :key, String.to_exisiting_atom(key))
+    socket = assign(socket, :key, String.to_existing_atom(key))
     {:noreply, socket}
   end
 
