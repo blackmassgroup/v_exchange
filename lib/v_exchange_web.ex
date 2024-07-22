@@ -54,8 +54,6 @@ defmodule VExchangeWeb do
       use Phoenix.LiveView,
         layout: {VExchangeWeb.Layouts, :app}
 
-      use VExchangeWeb.AsyncAssigns
-
       unquote(html_helpers())
     end
   end
