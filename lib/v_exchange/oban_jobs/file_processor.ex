@@ -1,4 +1,4 @@
-defmodule VExchange.FileProcessor do
+defmodule VExchange.ObanJobs.FileProcessor do
   use Oban.Worker, queue: :default, max_attempts: 3
 
   alias VExchange.Repo

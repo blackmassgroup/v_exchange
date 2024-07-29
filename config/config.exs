@@ -9,8 +9,12 @@ import Config
 
 config :v_exchange, Oban,
   repo: VExchange.Repo.Local,
-  plugins: [Oban.Plugins.Pruner],
-  queues: [default: 10]
+  engine: Oban.Engines.Basic,
+  queues: [default: 10, vxu_uploads: 1],
+  plugins: [
+    {Oban.Plugins.Cron, crontab: [{"0 0 * * *", VExchange.ObanJobs.DailyUploader}]},
+    {Oban.Plugins.Pruner, max_age: 7_889_238}
+  ]
 
 config :v_exchange, env: Mix.env()
 
