@@ -35,6 +35,12 @@ defmodule VExchangeWeb.SampleController do
       conn
       |> put_status(:created)
       |> render(:show_id, sample: sample)
+    else
+      {:error, %Ecto.Changeset{}} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(html: VExchangeWeb.ErrorHTML, json: VExchangeWeb.ErrorJSON)
+        |> render(:"422")
     end
   end
 
