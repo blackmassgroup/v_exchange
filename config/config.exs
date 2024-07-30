@@ -93,13 +93,6 @@ config :sentry,
 
 config :tesla, :adapter, Tesla.Adapter.Hackney
 
-config :v_exchange,
-  vxu_region: System.get_env("VXU_AWS_REGION"),
-  vxu_host: System.get_env("VXU_S3_HOST"),
-  vxu_access_key_id: System.get_env("VXU_AWS_ACCESS_KEY_ID"),
-  vxu_secret_access_key: System.get_env("VXU_AWS_SECRET_ACCESS_KEY"),
-  vxu_bucket_name: System.get_env("VXU_BUCKET_NAME")
-
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

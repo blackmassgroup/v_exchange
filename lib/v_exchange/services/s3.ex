@@ -31,12 +31,14 @@ defmodule VExchange.Services.S3 do
     end
   end
 
-  @upload_config %{
-    access_key_id: Application.compile_env!(:v_exchange, :vxu_access_key_id),
-    secret_access_key: Application.compile_env!(:v_exchange, :vxu_secret_access_key),
-    region: Application.compile_env!(:v_exchange, :vxu_region),
-    host: Application.compile_env!(:v_exchange, :vxu_host)
-  }
+  def upload_config() do
+    %{
+      access_key_id: Application.get_env(:v_exchange, :vxu_access_key_id),
+      secret_access_key: Application.get_env(:v_exchange, :vxu_secret_access_key),
+      region: Application.get_env(:v_exchange, :vxu_region),
+      host: Application.get_env(:v_exchange, :vxu_host)
+    }
+  end
 
   @doc """
   Upload to VX-Underground
@@ -44,6 +46,6 @@ defmodule VExchange.Services.S3 do
   def put_object(object_key, binary, :vx_underground) do
     Application.get_env(:vxu, :bucket_name)
     |> put_object(object_key, binary)
-    |> ExAws.request(@upload_config)
+    |> ExAws.request(upload_config())
   end
 end
