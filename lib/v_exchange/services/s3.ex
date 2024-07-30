@@ -25,7 +25,6 @@ defmodule VExchange.Services.S3 do
 
     ExAws.Config.new(:s3)
     |> ExAws.S3.presigned_url(:get, bucket, s3_object_key, opts)
-    |> IO.inspect()
     |> case do
       {:ok, url} -> url
       _ -> "#"
