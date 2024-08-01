@@ -125,8 +125,11 @@ defmodule VExchangeWeb.SampleLive.FormComponent do
   defp presign_upload(entry, socket) do
     bucket = S3.get_bucket()
     key = "#{entry.client_name}"
+    config_opts = S3.default_config()
 
-    {:ok, presigned_url} = ExAws.Config.new(:s3) |> ExAws.S3.presigned_url(:put, bucket, key)
+    {:ok, presigned_url} =
+      ExAws.Config.new(:s3, config_opts) |> ExAws.S3.presigned_url(:put, bucket, key)
+
     meta = %{uploader: "S3", bucket: bucket, key: key, url: presigned_url}
 
     {:ok, meta, socket}
@@ -249,9 +252,11 @@ defmodule VExchangeWeb.SampleLive.FormComponent do
   end
 
   defp get_s3_object({:error, _}, client_name) do
+    config_opts = S3.default_config()
+
     S3.get_bucket()
     |> ExAws.S3.get_object(client_name)
-    |> ExAws.request()
+    |> ExAws.request(config_opts)
     |> get_s3_object(client_name)
   end
 
@@ -261,11 +266,14 @@ defmodule VExchangeWeb.SampleLive.FormComponent do
 
   defp rename_uploaded_file(sha256, original_file_name) do
     bucket = S3.get_bucket()
+    config_opts = S3.default_config()
 
     with(
       {:ok, _body} <-
-        ExAws.S3.put_object_copy(bucket, sha256, bucket, original_file_name) |> ExAws.request(),
-      {:ok, _body} <- ExAws.S3.delete_object(bucket, original_file_name) |> ExAws.request()
+        ExAws.S3.put_object_copy(bucket, sha256, bucket, original_file_name)
+        |> ExAws.request(config_opts),
+      {:ok, _body} <-
+        ExAws.S3.delete_object(bucket, original_file_name) |> ExAws.request(config_opts)
     ) do
       {:ok, :success}
     else

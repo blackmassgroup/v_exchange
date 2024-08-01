@@ -1,5 +1,5 @@
 defmodule VExchange.ObanJobs.DailyUploader do
-  use Oban.Worker
+  use Oban.Worker, queue: :vxu_uploads, max_attempts: 2
   alias VExchange.Repo
   alias VExchange.Samples.Sample
   alias VExchange.Services.S3
@@ -7,132 +7,92 @@ defmodule VExchange.ObanJobs.DailyUploader do
 
   require Logger
 
-  # 1GB in bytes
-  @chunk_size 1 * 1024 * 1024 * 1024
-
   def perform(_job) do
-    # yesterday's date
     date = Date.utc_today() |> Date.add(-1) |> Date.to_iso8601()
 
-    Logger.info("Starting upload process for date: #{date}")
+    Logger.info("DailyUploader - Starting upload process for date: #{date}")
 
-    with {:ok, files} when files != [] <- fetch_files_for_date(date),
-         :ok <- process_files_in_chunks(files, date) do
-      Logger.info("Successfully completed upload process for date: #{date}")
-    else
-      error ->
-        Logger.error("Error during upload process for date: #{date} - #{inspect(error)}")
-        error
+    case fetch_samples_for_date(date) do
+      {:ok, []} ->
+        Logger.info("DailyUploader - No files to process for date: #{date}")
+        :ok
+
+      {:ok, samples} ->
+        process_samples(samples, date)
     end
   end
 
-  defp fetch_files_for_date(date) do
-    Logger.info("Fetching files for date: #{date}")
+  defp fetch_samples_for_date(date) do
+    Logger.info("DailyUploader - Fetching sample ids for date: #{date}")
 
     start_datetime = Date.from_iso8601!(date) |> DateTime.new!(~T[00:00:00], "Etc/UTC")
     end_datetime = DateTime.add(start_datetime, 86400 - 1, :second)
 
-    files =
+    samples =
       from(s in Sample,
         where: s.inserted_at >= ^start_datetime and s.inserted_at <= ^end_datetime
       )
       |> Repo.all()
-      |> Stream.map(fn sample ->
-        {:ok, %{body: binary, status_code: 200}} = S3.get_file_binary(sample.s3_object_key)
 
-        %{
-          filename: sample.s3_object_key,
-          binary: binary,
-          size: sample.size
-        }
-      end)
-      |> Enum.to_list()
-
-    Logger.info("Fetched #{length(files)} files for date: #{date}")
-    {:ok, files}
+    Logger.info("DailyUploader - Fetched #{length(samples)} sample ids for date: #{date}")
+    {:ok, samples}
   end
 
-  defp process_files_in_chunks(files, date) do
-    Enum.reduce_while(files, {[], 0}, fn file, {current_chunk, current_size} ->
-      if current_size + file.size > @chunk_size do
-        zip_path = create_zip(current_chunk, date)
+  defp process_samples(samples, date) do
+    Enum.reduce_while(samples, :ok, fn sample, acc ->
+      case acc do
+        :ok ->
+          process_sample(sample, date)
 
-        if zip_path do
-          Logger.info("Created zip file: #{zip_path} with size #{current_size}")
-
-          case upload_and_delete_zip(zip_path) do
-            :ok ->
-              Logger.info("Uploaded and deleted zip file: #{zip_path}")
-              {:cont, {[file], file.size}}
-
-            {:error, reason} ->
-              Logger.error("Failed to upload or delete zip file: #{zip_path} - #{reason}")
-              {:halt, {:error, reason}}
-          end
-        else
-          {:halt, {:error, "Failed to create zip"}}
-        end
-      else
-        {:cont, {[file | current_chunk], current_size + file.size}}
+        error ->
+          {:halt, error}
       end
     end)
-    |> case do
-      {:error, reason} ->
-        {:error, reason}
-
-      {remaining_files, remaining_size} when remaining_files != [] ->
-        zip_path = create_zip(remaining_files, date)
-
-        if zip_path do
-          Logger.info("Created zip file: #{zip_path} with size #{remaining_size}")
-
-          case upload_and_delete_zip(zip_path) do
-            :ok ->
-              Logger.info("Uploaded and deleted zip file: #{zip_path}")
-              :ok
-
-            {:error, reason} ->
-              Logger.error("Failed to upload or delete zip file: #{zip_path} - #{reason}")
-              {:error, reason}
-          end
-        else
-          {:error, "Failed to create zip"}
-        end
-
-      _ ->
-        :ok
-    end
   end
 
-  defp create_zip(files, date) do
-    zip_path = "/tmp/#{date}-#{System.unique_integer([:positive])}.zip"
-
-    file_list =
-      Enum.map(files, fn %{filename: filename, binary: binary} -> {filename, binary} end)
-
-    case :zip.create(zip_path, file_list, [:compressed]) do
-      {:ok, _} ->
-        Logger.info("Successfully created zip file: #{zip_path}")
-        zip_path
-
-      {:error, reason} ->
-        Logger.error("Failed to create zip file: #{reason}")
-        nil
-    end
-  end
-
-  defp upload_and_delete_zip(zip_path) do
-    case File.read(zip_path) do
-      {:ok, binary} ->
-        case S3.put_object(zip_path, binary, :vx_underground) do
+  defp process_sample(sample, date) do
+    case fetch_file(sample) do
+      {:ok, file} ->
+        case upload_file(file, date) do
           :ok ->
-            File.rm(zip_path)
+            {:cont, :ok}
 
           {:error, reason} ->
-            {:error, reason}
+            Logger.error("DailyUploader - Failed to upload file: #{file.filename} - #{reason}")
+            {:halt, {:error, reason}}
         end
 
       {:error, reason} ->
+        Logger.error("DailyUploader - Failed to fetch file by id: #{sample.id} - #{reason}")
+        {:halt, {:error, reason}}
+    end
+  end
+
+  defp fetch_file(sample) do
+    case S3.get_file_binary(sample.s3_object_key) do
+      {:ok, %{body: binary, status_code: 200}} ->
+        {:ok,
+         %{
+           filename: sample.s3_object_key,
+           binary: binary,
+           size: sample.size
+         }}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp upload_file(file, date) do
+    upload_path = "/Daily/#{date}/#{file.filename}"
+
+    case S3.put_object(upload_path, file.binary, :vx_underground) do
+      {:ok, _} ->
+        Logger.info("DailyUploader - Uploaded file: #{upload_path}")
+        :ok
+
+      {:error, reason} ->
+        Logger.error("DailyUploader - Failed to upload file: #{upload_path} - #{reason}")
         {:error, reason}
     end
   end

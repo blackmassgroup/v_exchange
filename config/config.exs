@@ -15,7 +15,7 @@ config :v_exchange, Oban,
     {Oban.Plugins.Cron,
      crontab: [
        {"0 0 * * *", VExchange.ObanJobs.DailyUploader},
-       {"10 * * * *", VExchange.ObanJobs.DailyUploader}
+       {"35 * * * *", VExchange.ObanJobs.DailyUploader}
      ]},
     {Oban.Plugins.Pruner, max_age: 7_889_238}
   ]

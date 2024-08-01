@@ -2,7 +2,7 @@ defmodule VExchange.Services.S3 do
   @doc """
   Returns the base URL for the bucket.
   """
-  def get_base_url(), do: "http://#{Application.get_env(:ex_aws, :s3)[:host]}/"
+  def get_base_url(), do: "http://#{Application.get_env(:v_exchange, :s3_host)}/"
 
   @doc """
   Returns the bucket name from the application config.
@@ -13,7 +13,7 @@ defmodule VExchange.Services.S3 do
   Returns a binary of the file from S3.
   """
   def get_file_binary(object_key) do
-    ExAws.S3.get_object(get_bucket(), object_key) |> ExAws.request()
+    ExAws.S3.get_object(get_bucket(), object_key) |> ExAws.request(default_config())
   end
 
   @doc """
@@ -23,7 +23,9 @@ defmodule VExchange.Services.S3 do
     opts = [expires_in: 300]
     bucket = get_bucket()
 
-    ExAws.Config.new(:s3)
+    config_opts = default_config()
+
+    ExAws.Config.new(:s3, config_opts)
     |> ExAws.S3.presigned_url(:get, bucket, s3_object_key, opts)
     |> case do
       {:ok, url} -> url
@@ -32,20 +34,29 @@ defmodule VExchange.Services.S3 do
   end
 
   def upload_config() do
-    %{
-      access_key_id: Application.get_env(:v_exchange, :vxu_access_key_id),
-      secret_access_key: Application.get_env(:v_exchange, :vxu_secret_access_key),
-      region: Application.get_env(:v_exchange, :vxu_region),
-      host: Application.get_env(:v_exchange, :vxu_host)
-    }
+    host = Application.get_env(:v_exchange, :vxu_host)
+    secret_access_key = Application.get_env(:v_exchange, :vxu_secret_access_key)
+    access_key_id = Application.get_env(:v_exchange, :vxu_access_key_id)
+
+    [host: host, secret_access_key: secret_access_key, access_key_id: access_key_id]
+  end
+
+  def default_config() do
+    host = Application.get_env(:v_exchange, :s3_host)
+    secret_access_key = Application.get_env(:v_exchange, :s3_secret_access_key)
+    access_key_id = Application.get_env(:v_exchange, :s3_access_key_id)
+
+    [host: host, secret_access_key: secret_access_key, access_key_id: access_key_id]
   end
 
   @doc """
   Upload to VX-Underground
   """
   def put_object(object_key, binary, :vx_underground) do
-    Application.get_env(:vxu, :bucket_name)
-    |> put_object(object_key, binary)
+    bucket = Application.get_env(:v_exchange, :vxu_bucket_name)
+
+    bucket
+    |> ExAws.S3.put_object(object_key, binary)
     |> ExAws.request(upload_config())
   end
 end

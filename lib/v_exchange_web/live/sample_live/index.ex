@@ -95,8 +95,9 @@ defmodule VExchangeWeb.SampleLive.Index do
   def generate_url_for_file(s3_object_key) do
     opts = [expires_in: 300]
     bucket = S3.get_bucket()
+    config_opts = S3.default_config()
 
-    ExAws.Config.new(:s3)
+    ExAws.Config.new(:s3, config_opts)
     |> ExAws.S3.presigned_url(:get, bucket, s3_object_key, opts)
     |> case do
       {:ok, url} -> url

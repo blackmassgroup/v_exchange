@@ -53,10 +53,11 @@ defmodule VExchangeWeb.SampleController do
 
   def upload_file(object_key, file) do
     opts = [{:content_type, "application/octet-stream"}]
+    config_opts = S3.default_config()
 
     S3.get_bucket()
     |> ExAws.S3.put_object(object_key, file, opts)
-    |> ExAws.request()
+    |> ExAws.request(config_opts)
   end
 
   def build_sample_params(file) do

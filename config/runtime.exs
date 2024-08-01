@@ -1,19 +1,15 @@
 import Config
 
-config :ex_aws,
-  region: System.get_env("AWS_REGION"),
-  s3: [
-    scheme: "https://",
-    host: System.get_env("S3_HOST"),
-    region: System.get_env("AWS_REGION")
-  ]
-
 config :v_exchange,
   vxu_region: System.get_env("VXU_AWS_REGION"),
-  vxu_host: System.get_env("VXU_S3_HOST"),
+  vxu_host: System.get_env("VXU_AWS_ENDPOINT"),
   vxu_access_key_id: System.get_env("VXU_AWS_ACCESS_KEY_ID"),
   vxu_secret_access_key: System.get_env("VXU_AWS_SECRET_ACCESS_KEY"),
-  vxu_bucket_name: System.get_env("VXU_BUCKET_NAME")
+  vxu_bucket_name: System.get_env("VXU_S3_BUCKET_NAME"),
+  s3_host: System.get_env("S3_HOST"),
+  s3_region: System.get_env("AWS_REGION"),
+  s3_access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
+  s3_secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
