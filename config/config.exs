@@ -91,7 +91,15 @@ config :sentry,
   dsn:
     "https://30f19d0c59e288153c88fb762e46cc3e@o4505897025470464.ingest.sentry.io/4505897042575360",
   included_environments: [:prod],
-  environment_name: Mix.env()
+  environment_name: Mix.env(),
+  integrations: [
+    oban: [
+      # Capture errors:
+      capture_errors: true,
+      # Monitor cron jobs:
+      cron: [enabled: true]
+    ]
+  ]
 
 config :tesla, :adapter, Tesla.Adapter.Hackney
 
