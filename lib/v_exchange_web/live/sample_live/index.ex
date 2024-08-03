@@ -4,8 +4,8 @@ defmodule VExchangeWeb.SampleLive.Index do
 
   alias VExchange.Services.S3
   alias VExchange.Samples
-  alias VExchange.Samples.Sample
-  alias VExchangeWeb.QueryCache
+  alias VExchange.Sample
+  alias VExchange.QueryCache
 
   @impl true
   def mount(_params, _session, socket) do
@@ -94,7 +94,7 @@ defmodule VExchangeWeb.SampleLive.Index do
 
   def generate_url_for_file(s3_object_key) do
     opts = [expires_in: 300]
-    bucket = S3.get_bucket()
+    bucket = S3.get_wasabi_bucket()
     config_opts = S3.wasabi_config()
 
     ExAws.Config.new(:s3, config_opts)

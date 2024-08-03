@@ -19,7 +19,7 @@ defmodule VExchange.Services.TriageUpload do
     with(
       {:ok, presigned_url} <-
         ExAws.Config.new(:s3, config_opts)
-        |> ExAws.S3.presigned_url(:get, S3.get_bucket(), "#{sample["sha256"]}"),
+        |> ExAws.S3.presigned_url(:get, S3.get_wasabi_bucket(), "#{sample["sha256"]}"),
       {:ok, triage_resp} <- VExchange.Services.Triage.upload(presigned_url),
       {:ok, _hashes} <- VExchange.Services.Triage.get_sample(triage_resp["id"])
     ) do

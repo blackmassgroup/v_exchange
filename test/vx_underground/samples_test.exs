@@ -4,7 +4,7 @@ defmodule VExchange.SamplesTest do
   alias VExchange.Samples
 
   describe "samples" do
-    alias VExchange.Samples.Sample
+    alias VExchange.Sample
 
     import VExchange.SamplesFixtures
 

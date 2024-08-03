@@ -1,4 +1,4 @@
-defmodule VExchangeWeb.QueryCache do
+defmodule VExchange.QueryCache do
   use GenServer
   alias VExchange.Samples
 

@@ -1,4 +1,4 @@
-defmodule VExchangeWeb.ApiBodyReader do
+defmodule VExchange.ApiBodyReader do
   def read_body(%Plug.Conn{request_path: path} = conn, opts)
       when path in ["/api/upload", "/api/samples/new"] do
     new_opts = [read_length: 52_000_000, length: 52_000_000, read_timeout: 20_000]

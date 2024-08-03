@@ -29,7 +29,7 @@ defmodule VExchange.Application do
       # {VExchange.Worker, arg}
       {Cluster.Supervisor, [topologies, [name: VExchange.ClusterSupervisor]]},
       {Oban, Application.fetch_env!(:v_exchange, Oban)},
-      VExchangeWeb.QueryCache
+      VExchange.QueryCache
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

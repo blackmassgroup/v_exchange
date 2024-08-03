@@ -1,9 +1,9 @@
 defmodule VExchangeWeb.SampleLive.FormComponent do
   use VExchangeWeb, :live_component
 
-  alias VExchangeWeb.QueryCache
+  alias VExchange.QueryCache
   alias VExchange.Samples
-  alias VExchange.Samples.Sample
+  alias VExchange.Sample
   alias VExchange.Services.S3
 
   @impl true
@@ -123,7 +123,7 @@ defmodule VExchangeWeb.SampleLive.FormComponent do
   end
 
   defp presign_upload(entry, socket) do
-    bucket = S3.get_bucket()
+    bucket = S3.get_wasabi_bucket()
     key = "#{entry.client_name}"
     config_opts = S3.wasabi_config()
 
@@ -254,7 +254,7 @@ defmodule VExchangeWeb.SampleLive.FormComponent do
   defp get_s3_object({:error, _}, client_name) do
     config_opts = S3.wasabi_config()
 
-    S3.get_bucket()
+    S3.get_wasabi_bucket()
     |> ExAws.S3.get_object(client_name)
     |> ExAws.request(config_opts)
     |> get_s3_object(client_name)
@@ -265,7 +265,7 @@ defmodule VExchangeWeb.SampleLive.FormComponent do
   end
 
   defp rename_uploaded_file(sha256, original_file_name) do
-    bucket = S3.get_bucket()
+    bucket = S3.get_wasabi_bucket()
     config_opts = S3.wasabi_config()
 
     with(

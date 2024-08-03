@@ -1,4 +1,4 @@
-defmodule VExchange.Samples.Sample do
+defmodule VExchange.Sample do
   use Ecto.Schema
   import Ecto.Changeset
 

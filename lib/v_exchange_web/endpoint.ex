@@ -44,7 +44,7 @@ defmodule VExchangeWeb.Endpoint do
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
     json_decoder: Phoenix.json_library(),
-    body_reader: {VExchangeWeb.ApiBodyReader, :read_body, []}
+    body_reader: {VExchange.ApiBodyReader, :read_body, []}
 
   plug Sentry.PlugContext
   plug Plug.MethodOverride

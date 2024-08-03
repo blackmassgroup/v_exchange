@@ -1,9 +1,9 @@
-defmodule VExchange.JobScheduler do
+defmodule VExchange.ObanJobs.JobScheduler do
   @moduledoc """
   Usage:
   ```
   start_date = ~D[2023-05-13]
-  VExchange.JobScheduler.insert_daily_uploader_jobs()
+  VExchange.ObanJobs.JobScheduler.insert_daily_uploader_jobs()
   ```
   """
   alias VExchange.ObanJobs.DailyUploader

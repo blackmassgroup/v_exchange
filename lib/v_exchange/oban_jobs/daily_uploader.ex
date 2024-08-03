@@ -8,7 +8,7 @@ defmodule VExchange.ObanJobs.DailyUploader do
 
   use Oban.Worker, queue: :vxu_uploads, max_attempts: 15
   alias VExchange.Repo
-  alias VExchange.Samples.Sample
+  alias VExchange.Sample
   alias VExchange.ObanJobs.FileUploader
   import Ecto.Query
 

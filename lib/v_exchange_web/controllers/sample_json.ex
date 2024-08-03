@@ -1,5 +1,5 @@
 defmodule VExchangeWeb.SampleJSON do
-  alias VExchange.Samples.Sample
+  alias VExchange.Sample
   alias VExchange.Services.S3
 
   @doc """

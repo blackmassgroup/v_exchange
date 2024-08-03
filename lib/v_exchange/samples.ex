@@ -6,8 +6,8 @@ defmodule VExchange.Samples do
   import Ecto.Query, warn: false
   alias VExchange.Repo.Local, as: Repo
 
-  alias VExchange.Samples.Sample
-  alias VExchangeWeb.QueryCache
+  alias VExchange.Sample
+  alias VExchange.QueryCache
 
   @doc """
   Returns the list of samples.
