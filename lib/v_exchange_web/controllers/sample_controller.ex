@@ -31,7 +31,7 @@ defmodule VExchangeWeb.SampleController do
 
     with params <- build_sample_params(file),
          {:ok, sample} <- Samples.create_sample(params),
-         {:ok, _sample} <- upload_file(sample.s3_object_key, file) do
+         {:ok, _sample} <- S3.put_object(sample.s3_object_key, file, :wasabi) do
       conn
       |> put_status(:created)
       |> render(:show_id, sample: sample)
@@ -41,6 +41,12 @@ defmodule VExchangeWeb.SampleController do
         |> put_status(:unprocessable_entity)
         |> put_view(html: VExchangeWeb.ErrorHTML, json: VExchangeWeb.ErrorJSON)
         |> render(:"422")
+
+      _ ->
+        conn
+        |> put_status(500)
+        |> put_view(html: VExchangeWeb.ErrorHTML, json: VExchangeWeb.ErrorJSON)
+        |> render(:"500")
     end
   end
 
@@ -49,15 +55,6 @@ defmodule VExchangeWeb.SampleController do
     |> put_status(:bad_request)
     |> put_view(html: VExchangeWeb.ErrorHTML, json: VExchangeWeb.ErrorJSON)
     |> render(:"400")
-  end
-
-  def upload_file(object_key, file) do
-    opts = [{:content_type, "application/octet-stream"}]
-    config_opts = S3.default_config()
-
-    S3.get_bucket()
-    |> ExAws.S3.put_object(object_key, file, opts)
-    |> ExAws.request(config_opts)
   end
 
   def build_sample_params(file) do

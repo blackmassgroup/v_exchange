@@ -13,7 +13,7 @@ defmodule VExchange.Services.S3 do
   Returns a binary of the file from S3.
   """
   def get_file_binary(object_key) do
-    ExAws.S3.get_object(get_bucket(), object_key) |> ExAws.request(default_config())
+    ExAws.S3.get_object(get_bucket(), object_key) |> ExAws.request(wasabi_config())
   end
 
   @doc """
@@ -22,8 +22,7 @@ defmodule VExchange.Services.S3 do
   def get_presigned_url(s3_object_key) do
     opts = [expires_in: 300]
     bucket = get_bucket()
-
-    config_opts = default_config()
+    config_opts = wasabi_config()
 
     ExAws.Config.new(:s3, config_opts)
     |> ExAws.S3.presigned_url(:get, bucket, s3_object_key, opts)
@@ -33,7 +32,10 @@ defmodule VExchange.Services.S3 do
     end
   end
 
-  def upload_config() do
+  @doc """
+  Config Used to upload to Alibaba
+  """
+  def alibaba() do
     host = Application.get_env(:v_exchange, :vxu_host)
     secret_access_key = Application.get_env(:v_exchange, :vxu_secret_access_key)
     access_key_id = Application.get_env(:v_exchange, :vxu_access_key_id)
@@ -41,7 +43,10 @@ defmodule VExchange.Services.S3 do
     [host: host, secret_access_key: secret_access_key, access_key_id: access_key_id]
   end
 
-  def default_config() do
+  @doc """
+  Config Used to Upload to Wasabi
+  """
+  def wasabi_config() do
     host = Application.get_env(:v_exchange, :s3_host)
     secret_access_key = Application.get_env(:v_exchange, :s3_secret_access_key)
     access_key_id = Application.get_env(:v_exchange, :s3_access_key_id)
@@ -50,13 +55,22 @@ defmodule VExchange.Services.S3 do
   end
 
   @doc """
-  Upload to VX-Underground
+  Upload an object to s3
   """
-  def put_object(object_key, binary, :vx_underground) do
+  def put_object(object_key, binary, :alibaba) do
     bucket = Application.get_env(:v_exchange, :vxu_bucket_name)
 
     bucket
     |> ExAws.S3.put_object(object_key, binary)
-    |> ExAws.request(upload_config())
+    |> ExAws.request(alibaba())
+  end
+
+  def put_object(object_key, binary, :wasabi) do
+    opts = [{:content_type, "application/octet-stream"}]
+    config_opts = wasabi_config()
+
+    get_bucket()
+    |> ExAws.S3.put_object(object_key, binary, opts)
+    |> ExAws.request(config_opts)
   end
 end

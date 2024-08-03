@@ -47,3 +47,6 @@ priv/repo/structure.sql
 file_list.txt
 
 scripts/*
+
+file_list.txt
+daily_objects.txt

@@ -1,15 +1,21 @@
 defmodule VExchange.ObanJobs.DailyUploader do
-  use Oban.Worker, queue: :vxu_uploads, max_attempts: 2
+  @moduledoc """
+  A module responsible for queuing file upload jobs to S3 on a daily basis.
+
+  This module uses `Oban.Worker` to define a job that runs daily, fetching files
+  that were inserted on a specified date and queuing separate jobs for uploading them to an S3 bucket.
+  """
+
+  use Oban.Worker, queue: :vxu_uploads, max_attempts: 15
   alias VExchange.Repo
   alias VExchange.Samples.Sample
-  alias VExchange.Services.S3
+  alias VExchange.ObanJobs.FileUploader
   import Ecto.Query
 
   require Logger
 
-  def perform(_job) do
-    date = Date.utc_today() |> Date.add(-1) |> Date.to_iso8601()
-
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: %{"date" => date}}) do
     Logger.info("DailyUploader - Starting upload process for date: #{date}")
 
     case fetch_samples_for_date(date) do
@@ -18,11 +24,25 @@ defmodule VExchange.ObanJobs.DailyUploader do
         :ok
 
       {:ok, samples} ->
-        process_samples(samples, date)
+        enqueue_file_upload_jobs(samples, date)
     end
   end
 
-  defp fetch_samples_for_date(date) do
+  @doc """
+  Fetches the sample IDs for a given date.
+
+  This function retrieves all sample IDs from the database that were inserted
+  on the specified date.
+
+  ## Parameters
+
+    - date: The date for which to fetch sample IDs, in ISO8601 format.
+
+  ## Returns
+
+    - {:ok, samples}: A tuple containing `:ok` and a list of samples.
+  """
+  def fetch_samples_for_date(date) do
     Logger.info("DailyUploader - Fetching sample ids for date: #{date}")
 
     start_datetime = Date.from_iso8601!(date) |> DateTime.new!(~T[00:00:00], "Etc/UTC")
@@ -38,62 +58,23 @@ defmodule VExchange.ObanJobs.DailyUploader do
     {:ok, samples}
   end
 
-  defp process_samples(samples, date) do
-    Enum.reduce_while(samples, :ok, fn sample, acc ->
-      case acc do
-        :ok ->
-          process_sample(sample, date)
+  @doc """
+  Enqueues jobs to upload files for each sample.
 
-        error ->
-          {:halt, error}
-      end
+  This function enqueues a separate Oban job for each sample to handle its file upload.
+
+  ## Parameters
+
+    - samples: A list of samples to process.
+    - date: The date for which the files are being processed, in ISO8601 format.
+  """
+  def enqueue_file_upload_jobs(samples, date) do
+    samples
+    |> Enum.each(fn sample ->
+      args = %{"s3_object_key" => sample.s3_object_key, "date" => date}
+
+      FileUploader.new(args)
+      |> Oban.insert!()
     end)
-  end
-
-  defp process_sample(sample, date) do
-    case fetch_file(sample) do
-      {:ok, file} ->
-        case upload_file(file, date) do
-          :ok ->
-            {:cont, :ok}
-
-          {:error, reason} ->
-            Logger.error("DailyUploader - Failed to upload file: #{file.filename} - #{reason}")
-            {:halt, {:error, reason}}
-        end
-
-      {:error, reason} ->
-        Logger.error("DailyUploader - Failed to fetch file by id: #{sample.id} - #{reason}")
-        {:halt, {:error, reason}}
-    end
-  end
-
-  defp fetch_file(sample) do
-    case S3.get_file_binary(sample.s3_object_key) do
-      {:ok, %{body: binary, status_code: 200}} ->
-        {:ok,
-         %{
-           filename: sample.s3_object_key,
-           binary: binary,
-           size: sample.size
-         }}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  defp upload_file(file, date) do
-    upload_path = "/Daily/#{date}/#{file.filename}"
-
-    case S3.put_object(upload_path, file.binary, :vx_underground) do
-      {:ok, _} ->
-        Logger.info("DailyUploader - Uploaded file: #{upload_path}")
-        :ok
-
-      {:error, reason} ->
-        Logger.error("DailyUploader - Failed to upload file: #{upload_path} - #{reason}")
-        {:error, reason}
-    end
   end
 end

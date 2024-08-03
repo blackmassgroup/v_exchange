@@ -9,7 +9,8 @@ config :v_exchange,
   s3_host: System.get_env("S3_HOST"),
   s3_region: System.get_env("AWS_REGION"),
   s3_access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
-  s3_secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY")
+  s3_secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY"),
+  s3_bucket_name: System.get_env("S3_BUCKET_NAME")
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -143,12 +144,10 @@ if config_env() == :prod do
       ]
     ]
 
-  config :v_exchange, s3_bucket_name: System.get_env("S3_BUCKET_NAME")
-
-  config :logger, :discord,
-    level: :error,
-    bot_token: System.get_env("DISCORD_BOT_TOKEN"),
-    channel_id: System.get_env("DISCORD_CHANNEL_ID")
+  # config :logger, :discord,
+  #   level: :error,
+  #   bot_token: System.get_env("DISCORD_BOT_TOKEN"),
+  #   channel_id: System.get_env("DISCORD_CHANNEL_ID")
 
   config :paraxial,
     paraxial_api_key: System.get_env("PARAXIAL_PROD_API_KEY"),

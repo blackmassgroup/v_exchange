@@ -125,7 +125,7 @@ defmodule VExchangeWeb.SampleLive.FormComponent do
   defp presign_upload(entry, socket) do
     bucket = S3.get_bucket()
     key = "#{entry.client_name}"
-    config_opts = S3.default_config()
+    config_opts = S3.wasabi_config()
 
     {:ok, presigned_url} =
       ExAws.Config.new(:s3, config_opts) |> ExAws.S3.presigned_url(:put, bucket, key)
@@ -252,7 +252,7 @@ defmodule VExchangeWeb.SampleLive.FormComponent do
   end
 
   defp get_s3_object({:error, _}, client_name) do
-    config_opts = S3.default_config()
+    config_opts = S3.wasabi_config()
 
     S3.get_bucket()
     |> ExAws.S3.get_object(client_name)
@@ -266,7 +266,7 @@ defmodule VExchangeWeb.SampleLive.FormComponent do
 
   defp rename_uploaded_file(sha256, original_file_name) do
     bucket = S3.get_bucket()
-    config_opts = S3.default_config()
+    config_opts = S3.wasabi_config()
 
     with(
       {:ok, _body} <-

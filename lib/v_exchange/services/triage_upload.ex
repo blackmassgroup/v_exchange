@@ -14,7 +14,7 @@ defmodule VExchange.Services.TriageUpload do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"sample" => sample}}) do
-    config_opts = S3.default_config()
+    config_opts = S3.wasabi_config()
 
     with(
       {:ok, presigned_url} <-
