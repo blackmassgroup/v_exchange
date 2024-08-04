@@ -8,15 +8,13 @@
 import Config
 
 three_days = 259_200
-yesterday = Date.utc_today() |> Date.add(-1) |> Date.to_iso8601()
 
 config :v_exchange, Oban,
   repo: VExchange.Repo.Local,
   engine: Oban.Engines.Basic,
   queues: [default: 10, vxu_uploads: 1, file_uploads: 50],
   plugins: [
-    {Oban.Plugins.Cron,
-     crontab: [{"0 0 * * *", VExchange.ObanJobs.DailyUploader, args: %{"date" => yesterday}}]},
+    {Oban.Plugins.Cron, crontab: [{"0 0 * * *", VExchange.ObanJobs.DailyUploader}]},
     {Oban.Plugins.Pruner, max_age: three_days},
     Oban.Plugins.Lifeline,
     Oban.Plugins.Reindexer

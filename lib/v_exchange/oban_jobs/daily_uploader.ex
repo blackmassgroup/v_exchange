@@ -15,8 +15,22 @@ defmodule VExchange.ObanJobs.DailyUploader do
   require Logger
 
   @impl Oban.Worker
+
   def perform(%Oban.Job{args: %{"date" => date}}) do
     Logger.info("DailyUploader - Starting upload process for date: #{date}")
+
+    case fetch_samples_for_date(date) do
+      {:ok, []} ->
+        Logger.info("DailyUploader - No files to process for date: #{date}")
+        :ok
+
+      {:ok, samples} ->
+        enqueue_file_upload_jobs(samples, date)
+    end
+  end
+
+  def perform(%Oban.Job{}) do
+    date = Date.utc_today() |> Date.add(-1) |> Date.to_iso8601()
 
     case fetch_samples_for_date(date) do
       {:ok, []} ->
